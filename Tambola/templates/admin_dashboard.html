@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body { background:#2a5298; text-align:center; color:white; font-family: Arial; }
+        .box { background:white; color:black; padding:30px; margin:50px auto; width:350px; border-radius:10px; }
+        input, button { display:block; margin:15px auto; padding:12px; width:90%; border-radius:5px; border:1px solid #ccc; }
+        .btn-wa { background:#25D366; color:white; text-decoration:none; display:block; padding:12px; border-radius:5px; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>ప్లేయర్ టికెట్ సెటప్</h2>
+        <form method="POST">
+            <input type="text" name="phone" placeholder="WhatsApp Number (eg: 919000000000)" required>
+            <input type="number" name="ticket_count" placeholder="టికెట్ల సంఖ్య" value="3" required>
+            <button type="submit" style="background:#1e3c72; color:white; border:none; cursor:pointer;">లింక్ తయారు చేయి</button>
+        </form>
+        {% if whatsapp_link %}
+            <a href="{{ whatsapp_link }}" target="_blank" class="btn-wa">WhatsApp కి పంపించు</a>
+        {% endif %}
+        <br><a href="/game" style="color:#1e3c72; font-weight:bold;">గేమ్ బోర్డు కి వెళ్ళు →</a>
+    </div>
+</body>
+</html>

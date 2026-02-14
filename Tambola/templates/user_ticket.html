@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>మీ టికెట్లు</title>
+    <style>
+        body { text-align:center; background:#111; color:white; font-family: sans-serif; }
+        table { margin:15px auto; border-collapse:collapse; background: white; color: black; }
+        td { width:55px; height:55px; border:2px solid #333; font-size:22px; font-weight:bold; cursor: pointer; }
+        .marked { background: #3498db !important; color: white !important; }
+        .empty { background: #eee; cursor: default; }
+    </style>
+</head>
+<body>
+    <h1>మీ టికెట్లు</h1>
+    {% for ticket in tickets %}
+    <div style="margin-bottom:30px;">
+        <h3>టికెట్ #{{ loop.index }}</h3>
+        <table>
+            {% for row in ticket %}
+            <tr>
+                {% for num in row %}
+                    {% if num %}<td onclick="this.classList.toggle('marked')">{{ num }}</td>
+                    {% else %}<td class="empty"></td>{% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+</body>
+</html>

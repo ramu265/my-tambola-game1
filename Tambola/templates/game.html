@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambola Admin - Live Board</title>
+    <style>
+        body { text-align:center; background:#0f0f0f; color:white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; margin: 0; height: 100vh; }
+        
+        /* ఎడమ వైపు ప్యానల్ - నంబర్ కాలింగ్ */
+        .main { flex: 2; padding: 20px; border-right: 2px solid #333; overflow-y: auto; }
+        
+        /* కుడి వైపు ప్యానల్ - విజేతల జాబితా */
+        .sidebar { flex: 1; background: #1a1a1a; padding: 20px; text-align: left; overflow-y: auto; }
+
+        #num-display { font-size:120px; color:#f1c40f; margin:10px; font-weight: bold; text-shadow: 0 0 20px rgba(241, 196, 15, 0.5); }
+        
+        /* లైన్ గా డిస్ప్లే అయ్యే నంబర్లు (Sequence) */
+        .sequence-container { 
+            background: #222; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 20px auto; 
+            max-width: 90%; 
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            border: 1px solid #444;
+        }
+        .seq-num { 
+            background: #3498db; 
+            color: white; 
+            width: 45px; 
+            height: 45px; 
+            line-height: 45px; 
+            border-radius: 50%; 
+            font-weight: bold; 
+            font-size: 20px;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; max-width: 600px; margin: 20px auto; }
+        .cell { padding: 10px; background: #222; border: 1px solid #444; color: #555; border-radius: 4px; }
+        .called { background: #e74c3c !important; color: white !important; font-weight: bold; }
+        
+        button { padding: 18px 40px; background:#27ae60; color:white; border:none; cursor:pointer; font-size:22px; border-radius:12px; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
+
+        .win-box { margin-bottom: 20px; background: #2c3e50; padding: 10px; border-radius: 8px; }
+        .win-box h4 { color: #f1c40f; margin: 0 0 10px 0; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        .win-name { color: #2ecc71; font-size: 15px; margin: 5px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1>తంబోలా గేమ్ మాస్టర్</h1>
+        <div id="num-display">--</div>
+        <button onclick="callNum()">Next Number (తర్వాతి సంఖ్య)</button>
+
+        <h3>పిలిచిన సంఖ్యలు (వరుసగా):</h3>
+        <div class="sequence-container" id="numbers-sequence">
+            </div>
+
+        <h3>పూర్తి బోర్డు:</h3>
+        <div class="grid" id="board"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2 style="color: #3498db; border-bottom: 2px solid #3498db;">లైవ్ విజేతలు</h2>
+        <div id="first_five" class="win-box"><h4>First 5:</h4></div>
+        <div id="top_line" class="win-box"><h4>Top Line:</h4></div>
+        <div id="middle_line" class="win-box"><h4>Middle Line:</h4></div>
+        <div id="bottom_line" class="win-box"><h4>Bottom Line:</h4></div>
+        <div id="full_house" class="win-box"><h4>Full House:</h4></div>
+    </div>
+
+    <script>
+        // 1-90 బోర్డు క్రియేషన్
+        const board = document.getElementById('board');
+        for (let i = 1; i <= 90; i++) {
+            let d = document.createElement('div'); 
+            d.className='cell'; 
+            d.id='c'+i; 
+            d.innerText=i;
+            board.appendChild(d);
+        }
+
+        function callNum() {
+            fetch("/call_number")
+            .then(r => r.json())
+            .then(data => {
+                if(data.number === "Game Over") {
+                    alert("ఆట పూర్తయింది!");
+                    return;
+                }
+
+                // 1. పెద్దగా కనిపించే నంబర్ అప్‌డేట్
+                document.getElementById('num-display').innerText = data.number;
+                
+                // 2. బోర్డు మీద రెడ్ కలర్ మార్కింగ్
+                document.getElementById('c' + data.number).classList.add('called');
+                
+                // 3. నంబర్లు లైన్ గా (Sequence) డిస్ప్లే చేయడం
+                const sequenceContainer = document.getElementById('numbers-sequence');
+                let newNum = document.createElement('div');
+                newNum.className = 'seq-num';
+                newNum.innerText = data.number;
+                // కొత్త నంబర్ ఎప్పుడూ ముందు కనిపించాలంటే prepend() వాడొచ్చు, లేదా చివరన అంటే appendChild()
+                sequenceContainer.appendChild(newNum);
+
+                // 4. విజేతల జాబితా అప్‌డేట్
+                for (let cat in data.winners) {
+                    let container = document.getElementById(cat);
+                    let title = container.querySelector('h4');
+                    container.innerHTML = ""; 
+                    container.appendChild(title);
+                    data.winners[cat].forEach(w => {
+                        let p = document.createElement('p'); 
+                        p.className='win-name'; 
+                        p.innerText = "🏆 " + w;
+                        container.appendChild(p);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
