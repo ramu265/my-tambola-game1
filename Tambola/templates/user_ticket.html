@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>మీ టికెట్లు</title>
+    <title>Your Tambola Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { text-align:center; background:#111; color:white; font-family: sans-serif; }
-        table { margin:15px auto; border-collapse:collapse; background: white; color: black; }
-        td { width:55px; height:55px; border:2px solid #333; font-size:22px; font-weight:bold; cursor: pointer; }
+        body { text-align:center; background:#111; color:white; font-family: sans-serif; padding: 10px; }
+        .history-box { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
+        .num-ball { background: #e74c3c; color: white; width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; display: inline-block; margin: 3px; font-size: 14px; }
+        table { margin: 15px auto; border-collapse: collapse; background: white; color: black; border-radius: 8px; overflow: hidden; }
+        td { width: 40px; height: 40px; border: 1px solid #ccc; font-size: 18px; font-weight: bold; cursor: pointer; }
         .marked { background: #3498db !important; color: white !important; }
-        .empty { background: #eee; cursor: default; }
+        .empty { background: #f0f0f0; cursor: default; }
+        h3 { color: #f1c40f; }
     </style>
 </head>
 <body>
-    <h1>మీ టికెట్లు</h1>
+    <h1>Your Tickets</h1>
+
+    <div class="history-box">
+        <h3>Numbers Called So Far:</h3>
+        <div id="numbers-sequence">
+            {% for num in called_numbers %}
+                <span class="num-ball">{{ num }}</span>
+            {% endfor %}
+        </div>
+        <p style="font-size: 0.7em; color: #888;">(Refresh page for latest numbers)</p>
+    </div>
+
     {% for ticket in tickets %}
-    <div style="margin-bottom:30px;">
-        <h3>టికెట్ #{{ loop.index }}</h3>
+    <div style="margin-bottom:40px;">
+        <h3 style="color: #fff;">Ticket #{{ loop.index }}</h3>
         <table>
             {% for row in ticket %}
             <tr>
