@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, jsonify
 import random
 import uuid
 import urllib.parse
+import os
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -44,11 +45,9 @@ def check_all_winners():
             all_nums = [n for r in ticket for n in r if n]
             marked = [n for n in all_nums if n in called_numbers]
 
-            # First Five
             if len(marked) >= 5 and ticket_label not in winners["first_five"]:
                 winners["first_five"].append(ticket_label)
             
-            # Lines
             line_keys = ["top_line", "middle_line", "bottom_line"]
             for i in range(3):
                 row_nums = [n for n in ticket[i] if n]
@@ -56,7 +55,6 @@ def check_all_winners():
                     if ticket_label not in winners[line_keys[i]]:
                         winners[line_keys[i]].append(ticket_label)
             
-            # Full House
             if len(marked) == 15 and ticket_label not in winners["full_house"]:
                 winners["full_house"].append(ticket_label)
 
@@ -78,7 +76,8 @@ def dashboard():
         token = str(uuid.uuid4())
         users[token] = {"tickets": [generate_ticket() for _ in range(count)], "phone": phone}
         
-        game_url = f"http://127.0.0.1:5000/user/{token}"
+        # ఇక్కడ మీ లైవ్ లింక్ అప్‌డేట్ చేయబడింది
+        game_url = f"https://h-game.onrender.com/user/{token}"
         msg = f"నమస్తే! మీ తంబోలా టికెట్లు రెడీ. మొత్తం {count} టికెట్లు ఉన్నాయి. ఆడటానికి ఇక్కడ క్లిక్ చేయండి: {game_url}"
         whatsapp_link = f"https://wa.me/{phone}?text={urllib.parse.quote(msg)}"
         return render_template("admin_dashboard.html", whatsapp_link=whatsapp_link)
@@ -104,4 +103,6 @@ def call_number():
     return jsonify({"number":num, "winners": winners})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Render కోసం పోర్ట్ సెట్టింగ్
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
