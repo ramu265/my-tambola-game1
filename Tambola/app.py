@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import random
 import uuid
 import urllib.parse
@@ -7,10 +7,9 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-users = {}
+# Game State
 called_numbers = []
-remaining_numbers = list(range(1, 91))
-
+users = {}
 winners = {
     "first_five": [],
     "top_line": [],
@@ -19,84 +18,80 @@ winners = {
     "full_house": []
 }
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+def generate_tambola_ticket():
+    ticket = [[0 for _ in range(9)] for _ in range(3)]
+    for row in range(3):
+        cols = random.sample(range(9), 5)
+        for col in cols:
+            num = random.randint(col * 10 + 1, col * 10 + 10)
+            ticket[row][col] = num
+    return ticket
 
-def generate_full_sheet():
-    all_nums = list(range(1, 91))
-    random.shuffle(all_nums)
-    sheet = []
-    for i in range(6):
-        ticket = [[None for _ in range(9)] for _ in range(3)]
-        ticket_nums = sorted(all_nums[i*15 : (i+1)*15])
-        for num in ticket_nums:
-            col = (num - 1) // 10 if num <= 89 else 8
-            for row in range(3):
-                if ticket[row][col] is None:
-                    ticket[row][col] = num
-                    break
-        sheet.append(ticket)
-    return sheet
+@app.route('/')
+def admin_login():
+    return render_template('admin_login.html')
 
-def check_all_winners():
-    for token, data in users.items():
-        phone = data["phone"]
-        for idx, ticket in enumerate(data["tickets"]):
-            ticket_label = f"Ph: {phone} (T#{idx+1})"
-            all_nums = [n for r in ticket for n in r if n]
-            marked = [n for n in all_nums if n in called_numbers]
-            if len(marked) >= 5 and ticket_label not in winners["first_five"]:
-                winners["first_five"].append(ticket_label)
-            line_keys = ["top_line", "middle_line", "bottom_line"]
-            for i in range(3):
-                row_nums = [n for n in ticket[i] if n]
-                if row_nums and all(n in called_numbers for n in row_nums):
-                    if ticket_label not in winners[line_keys[i]]:
-                        winners[line_keys[i]].append(ticket_label)
-            if len(marked) == 15 and ticket_label not in winners["full_house"]:
-                winners["full_house"].append(ticket_label)
-
-@app.route("/", methods=["GET","POST"])
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == "POST":
-        if request.form["username"] == ADMIN_USERNAME and request.form["password"] == ADMIN_PASSWORD:
-            session["admin"] = True
-            return redirect("/dashboard")
-    return render_template("admin_login.html")
+    username = request.form.get('username')
+    password = request.form.get('password')
+    if username == "admin" and password == "admin123":
+        session['admin'] = True
+        return redirect(url_for('admin_dashboard'))
+    return "Invalid Credentials"
 
-@app.route("/dashboard", methods=["GET","POST"])
-def dashboard():
-    if "admin" not in session: return redirect("/")
-    whatsapp_link = None
-    if request.method == "POST":
-        phone = request.form.get("phone")
-        token = str(uuid.uuid4())
-        users[token] = {"tickets": generate_full_sheet(), "phone": phone}
-        game_url = f"https://h-game.onrender.com/user/{token}"
-        msg = f"Hello! Your Tambola Full Sheet (6 Tickets) is ready. All numbers 1-90 are included. Play here: {game_url}"
-        whatsapp_link = f"https://wa.me/{phone}?text={urllib.parse.quote(msg)}"
-        return render_template("admin_dashboard.html", whatsapp_link=whatsapp_link)
-    return render_template("admin_dashboard.html")
+@app.route('/dashboard')
+def admin_dashboard():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    return render_template('admin_dashboard.html')
 
-@app.route("/user/<token>")
-def user_page(token):
-    user = users.get(token)
-    if not user: return "Invalid Ticket"
-    return render_template("user_ticket.html", tickets=user["tickets"], called_numbers=called_numbers)
+@app.route('/generate_tickets', methods=['POST'])
+def generate_tickets():
+    phone = request.form.get('phone')
+    try:
+        count = int(request.form.get('ticket_count', 6)) # అడ్మిన్ ఇచ్చే సంఖ్యను తీసుకుంటుంది
+    except:
+        count = 6
+        
+    token = str(uuid.uuid4())[:8]
+    
+    user_tickets = []
+    for _ in range(count):
+        user_tickets.append(generate_tambola_ticket())
+        
+    users[token] = {"phone": phone, "tickets": user_tickets}
+    
+    base_url = request.url_root.rstrip('/')
+    link = f"{base_url}/ticket/{token}"
+    msg = f"Hello! Here are your {count} Tambola Tickets: {link}"
+    whatsapp_url = f"https://wa.me/{phone}?text={urllib.parse.quote(msg)}"
+    return redirect(whatsapp_url)
 
-@app.route("/game")
-def game():
-    return render_template("game.html")
+@app.route('/ticket/<token>')
+def show_ticket(token):
+    user_data = users.get(token)
+    if not user_data:
+        return "Ticket Not Found"
+    return render_template('user_ticket.html', tickets=user_data['tickets'], called_numbers=called_numbers)
 
-@app.route("/call_number")
+@app.route('/game')
+def game_board():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    return render_template('game.html', called_numbers=called_numbers, all_nums=range(1, 91))
+
+@app.route('/call_number', methods=['POST'])
 def call_number():
-    if not remaining_numbers: return jsonify({"number":"Game Over"})
-    num = random.choice(remaining_numbers)
-    remaining_numbers.remove(num)
-    called_numbers.append(num)
-    check_all_winners()
-    return jsonify({"number":num, "winners": winners, "all_called": called_numbers})
+    if len(called_numbers) >= 90:
+        return jsonify({"status": "over"})
+    
+    new_num = random.randint(1, 90)
+    while new_num in called_numbers:
+        new_num = random.randint(1, 90)
+    
+    called_numbers.append(new_num)
+    return jsonify({"number": new_num, "history": called_numbers})
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    app.run(debug=True)
