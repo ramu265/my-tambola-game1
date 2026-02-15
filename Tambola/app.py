@@ -10,13 +10,6 @@ app.secret_key = "secret123"
 # Game State
 called_numbers = []
 users = {}
-winners = {
-    "first_five": [],
-    "top_line": [],
-    "middle_line": [],
-    "bottom_line": [],
-    "full_house": []
-}
 
 def generate_tambola_ticket():
     ticket = [[0 for _ in range(9)] for _ in range(3)]
@@ -31,31 +24,35 @@ def generate_tambola_ticket():
 def admin_login():
     return render_template('admin_login.html')
 
-@app.route('/login', methods=['POST'])
+# ఇక్కడ మెథడ్స్ అప్‌డేట్ చేశాను - దీనివల్ల ఎర్రర్ రాదు
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    if username == "admin" and password == "admin123":
-        session['admin'] = True
-        return redirect(url_for('admin_dashboard'))
-    return "Invalid Credentials"
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == "admin" and password == "admin123":
+            session['admin'] = True
+            return redirect(url_for('admin_dashboard'))
+        return "Invalid Credentials"
+    return redirect(url_for('admin_login'))
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
     if not session.get('admin'):
         return redirect(url_for('admin_login'))
-    return render_template('admin_dashboard.html')
+    # అడ్మిన్ డాష్‌బోర్డ్ లో కాల్ చేసిన నంబర్లు కూడా కనిపిస్తాయి
+    return render_template('admin_dashboard.html', called_numbers=called_numbers)
 
 @app.route('/generate_tickets', methods=['POST'])
 def generate_tickets():
     phone = request.form.get('phone')
     try:
-        count = int(request.form.get('ticket_count', 6)) # అడ్మిన్ ఇచ్చే సంఖ్యను తీసుకుంటుంది
+        # అడ్మిన్ డాష్‌బోర్డ్ నుండి వచ్చే టికెట్ సంఖ్యను తీసుకుంటుంది
+        count = int(request.form.get('ticket_count', 6)) 
     except:
         count = 6
         
     token = str(uuid.uuid4())[:8]
-    
     user_tickets = []
     for _ in range(count):
         user_tickets.append(generate_tambola_ticket())
@@ -73,13 +70,8 @@ def show_ticket(token):
     user_data = users.get(token)
     if not user_data:
         return "Ticket Not Found"
+    # యూజర్ టికెట్ పేజీకి పిలిచిన నంబర్ల లిస్ట్ పంపిస్తున్నాము
     return render_template('user_ticket.html', tickets=user_data['tickets'], called_numbers=called_numbers)
-
-@app.route('/game')
-def game_board():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
-    return render_template('game.html', called_numbers=called_numbers, all_nums=range(1, 91))
 
 @app.route('/call_number', methods=['POST'])
 def call_number():
@@ -91,6 +83,7 @@ def call_number():
         new_num = random.randint(1, 90)
     
     called_numbers.append(new_num)
+    # కొత్త నంబర్ మరియు మొత్తం హిస్టరీని రిటర్న్ చేస్తుంది
     return jsonify({"number": new_num, "history": called_numbers})
 
 if __name__ == '__main__':
