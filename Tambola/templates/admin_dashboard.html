@@ -2,25 +2,25 @@
 <html>
 <head>
     <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background:#2a5298; text-align:center; color:white; font-family: Arial; }
-        .box { background:white; color:black; padding:30px; margin:50px auto; width:350px; border-radius:10px; }
-        input, button { display:block; margin:15px auto; padding:12px; width:90%; border-radius:5px; border:1px solid #ccc; }
-        .btn-wa { background:#25D366; color:white; text-decoration:none; display:block; padding:12px; border-radius:5px; font-weight:bold; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 10px; display: inline-block; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input { padding: 10px; margin: 10px; width: 80%; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>ప్లేయర్ టికెట్ సెటప్</h2>
-        <form method="POST">
-            <input type="text" name="phone" placeholder="WhatsApp Number (eg: 919000000000)" required>
-            <input type="number" name="ticket_count" placeholder="టికెట్ల సంఖ్య" value="3" required>
-            <button type="submit" style="background:#1e3c72; color:white; border:none; cursor:pointer;">లింక్ తయారు చేయి</button>
+    <h1>Tambola Admin</h1>
+    <div class="card">
+        <h3>Generate Tickets</h3>
+        <form action="/generate_tickets" method="POST">
+            <input type="text" name="phone" placeholder="WhatsApp Number (e.g. 919876543210)" required><br>
+            <input type="number" name="ticket_count" placeholder="How many tickets? (1-6)" min="1" max="6" required><br>
+            <button type="submit">Send via WhatsApp</button>
         </form>
-        {% if whatsapp_link %}
-            <a href="{{ whatsapp_link }}" target="_blank" class="btn-wa">WhatsApp కి పంపించు</a>
-        {% endif %}
-        <br><a href="/game" style="color:#1e3c72; font-weight:bold;">గేమ్ బోర్డు కి వెళ్ళు →</a>
+        <hr>
+        <a href="/game"><button style="background: #2980b9;">Go to Game Board</button></a>
     </div>
 </body>
 </html>
