@@ -2,22 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Login</title>
+    <title>Admin Dashboard</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f4f4f4; }
-        .login-box { background: white; padding: 20px; display: inline-block; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input { display: block; margin: 10px auto; padding: 10px; width: 200px; }
-        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        body { font-family: sans-serif; margin: 20px; background: #eef2f3; }
+        .card { background: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .game-link { display: block; text-align: center; margin-top: 20px; color: #28a745; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>Tambola Admin Login</h2>
-        <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
+    <div class="card">
+        <h2>Send Tickets to WhatsApp</h2>
+        <form action="/generate_tickets" method="POST">
+            <label>WhatsApp Number (with 91):</label>
+            <input type="text" name="phone" placeholder="919876543210" required>
+            
+            <label>How many tickets? (1-6):</label>
+            <select name="ticket_count">
+                <option value="1">1 Ticket</option>
+                <option value="2">2 Tickets</option>
+                <option value="3">3 Tickets</option>
+                <option value="4">4 Tickets</option>
+                <option value="5">5 Tickets</option>
+                <option value="6" selected>6 Tickets</option>
+            </select>
+            
+            <button type="submit" class="btn">Generate & Send to WhatsApp</button>
         </form>
+        <a href="/game" class="game-link">Go to Main Game Board →</a>
     </div>
 </body>
 </html>
