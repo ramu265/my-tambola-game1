@@ -1,73 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tambola Admin - Live Board</title>
+    <title>Tambola Game Board</title>
     <style>
-        body { text-align:center; background:#0f0f0f; color:white; font-family: sans-serif; display: flex; margin: 0; height: 100vh; }
-        .main { flex: 2; padding: 20px; border-right: 2px solid #333; overflow-y: auto; }
-        .sidebar { flex: 1; background: #1a1a1a; padding: 20px; text-align: left; overflow-y: auto; }
-        #num-display { font-size: 100px; color: #f1c40f; margin: 10px; font-weight: bold; }
-        .sequence-container { background: #222; padding: 15px; border-radius: 10px; margin: 20px auto; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-        .seq-num { background: #3498db; color: white; width: 40px; height: 40px; line-height: 40px; border-radius: 50%; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; max-width: 500px; margin: 20px auto; }
-        .cell { padding: 10px; background: #222; border: 1px solid #444; color: #555; }
-        .called { background: #e74c3c !important; color: white !important; }
-        button { padding: 15px 30px; background: #27ae60; color: white; border: none; cursor: pointer; font-size: 20px; border-radius: 10px; }
-        .win-box { margin-bottom: 15px; background: #2c3e50; padding: 10px; border-radius: 8px; }
-        .win-box h4 { color: #f1c40f; margin: 0; }
-        .win-name { color: #2ecc71; font-weight: bold; font-size: 14px; margin: 4px 0; }
+        body { font-family: sans-serif; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; max-width: 600px; margin: auto; }
+        .num { padding: 10px; border: 1px solid #ccc; background: white; }
+        .called { background: #ffc107; font-weight: bold; }
+        .current { background: #dc3545; color: white; font-size: 24px; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="main">
-        <h1>Tambola Game Master</h1>
-        <div id="num-display">--</div>
-        <button onclick="callNum()">Call Next Number</button>
-        <h3>Called Numbers (Sequence):</h3>
-        <div class="sequence-container" id="numbers-sequence"></div>
-        <h3>Full Board:</h3>
-        <div class="grid" id="board"></div>
-    </div>
-
-    <div class="sidebar">
-        <h2 style="color: #3498db;">Live Winners</h2>
-        <div id="first_five" class="win-box"><h4>First 5:</h4></div>
-        <div id="top_line" class="win-box"><h4>Top Line:</h4></div>
-        <div id="middle_line" class="win-box"><h4>Middle Line:</h4></div>
-        <div id="bottom_line" class="win-box"><h4>Bottom Line:</h4></div>
-        <div id="full_house" class="win-box"><h4>Full House:</h4></div>
+    <h1>Tambola Master Board</h1>
+    <div id="current-num" class="current">Ready?</div>
+    <button onclick="callNext()" style="padding: 15px 30px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Call Next Number</button>
+    
+    <div class="grid" id="board">
+        {% for i in range(1, 91) %}
+            <div id="n{{i}}" class="num {% if i in called_numbers %}called{% endif %}">{{i}}</div>
+        {% endfor %}
     </div>
 
     <script>
-        const board = document.getElementById('board');
-        for (let i = 1; i <= 90; i++) {
-            let d = document.createElement('div'); d.className='cell'; d.id='c'+i; d.innerText=i;
-            board.appendChild(d);
-        }
-
-        function callNum() {
-            fetch("/call_number")
-            .then(r => r.json())
+        function callNext() {
+            fetch('/call_number', {method: 'POST'})
+            .then(res => res.json())
             .then(data => {
-                if(data.number === "Game Over") { alert("Game Over!"); return; }
-                document.getElementById('num-display').innerText = data.number;
-                document.getElementById('c' + data.number).classList.add('called');
-                
-                const seqContainer = document.getElementById('numbers-sequence');
-                seqContainer.innerHTML = "";
-                data.all_called.forEach(n => {
-                    let s = document.createElement('div'); s.className='seq-num'; s.innerText=n;
-                    seqContainer.appendChild(s);
-                });
-
-                for (let cat in data.winners) {
-                    let container = document.getElementById(cat);
-                    let title = container.querySelector('h4');
-                    container.innerHTML = ""; container.appendChild(title);
-                    data.winners[cat].forEach(w => {
-                        let p = document.createElement('p'); p.className='win-name'; p.innerText = "🏆 " + w;
-                        container.appendChild(p);
-                    });
+                if(data.status === 'over') alert('Game Over!');
+                else {
+                    document.getElementById('current-num').innerText = "Current Number: " + data.number;
+                    document.getElementById('n' + data.number).classList.add('called');
                 }
             });
         }
