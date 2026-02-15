@@ -1,52 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Your Tambola Tickets</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your Tickets</title>
     <style>
-        body { text-align:center; background:#111; color:white; font-family: sans-serif; padding: 10px; }
-        .history-box { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
-        .num-ball { background: #e74c3c; color: white; width: 35px; height: 35px; line-height: 35px; border-radius: 50%; font-weight: bold; display: inline-block; margin: 3px; font-size: 14px; }
-        .ticket-container { margin-bottom: 30px; border: 3px solid #f1c40f; display: inline-block; padding: 10px; border-radius: 10px; background: #fff; }
-        table { border-collapse: collapse; background: white; color: black; margin: 0 auto; }
-        td { width: 45px; height: 45px; border: 1px solid #ccc; font-size: 20px; font-weight: bold; cursor: pointer; text-align: center; }
-        .marked { background: #3498db !important; color: white !important; }
-        .empty { background: #f0f0f0; }
-        h2 { color: #f1c40f; margin-top: 25px; }
+        body { font-family: sans-serif; background: #f0f0f0; padding: 10px; }
+        .history-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #ffc107; }
+        .num-circle { display: inline-block; width: 30px; height: 30px; background: #ffc107; border-radius: 50%; text-align: center; line-height: 30px; margin: 3px; font-weight: bold; font-size: 14px; }
+        table { border-collapse: collapse; margin: 20px auto; background: white; }
+        td { border: 1px solid #333; width: 40px; height: 40px; text-align: center; font-weight: bold; }
+        .empty { background: #eee; }
     </style>
 </head>
 <body>
-    <h1>Your Tickets</h1>
-    
     <div class="history-box">
-        <h3>Numbers Called So Far:</h3>
-        <div id="numbers-sequence">
+        <h3 style="margin-top: 0;">Numbers Called So Far:</h3>
+        <div id="history">
             {% for num in called_numbers %}
-                <span class="num-ball">{{ num }}</span>
+                <span class="num-circle">{{ num }}</span>
             {% endfor %}
         </div>
-        <p style="font-size: 0.8rem; color: #888;">(Refresh page for latest numbers)</p>
     </div>
 
+    <h2 style="text-align: center;">Your Tambola Tickets</h2>
     {% for ticket in tickets %}
-        <h2>Ticket #{{ loop.index }}</h2>
-        <div class="ticket-container">
-            <table>
-                {% for row in ticket %}
+        <table>
+            {% for row in ticket %}
                 <tr>
                     {% for col in row %}
-                        {% if col == 0 %}
-                            <td class="empty"></td>
-                        {% else %}
-                            <td onclick="this.classList.toggle('marked')" class="{% if col in called_numbers %}called{% endif %}">
-                                {{ col }}
-                            </td>
-                        {% endif %}
+                        <td class="{% if col == 0 %}empty{% endif %}">{% if col != 0 %}{{ col }}{% endif %}</td>
                     {% endfor %}
                 </tr>
-                {% endfor %}
-            </table>
-        </div>
+            {% endfor %}
+        </table>
+        <br>
     {% endfor %}
+
+    <script>
+        // ప్రతి 5 సెకన్లకు పేజీని రిఫ్రెష్ చేసి కొత్త నంబర్లు వచ్చాయో లేదో చూస్తుంది
+        setTimeout(function(){ location.reload(); }, 5000);
+    </script>
 </body>
 </html>
