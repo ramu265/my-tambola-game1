@@ -6,17 +6,18 @@
     <style>
         body { text-align:center; background:#111; color:white; font-family: sans-serif; padding: 10px; }
         .history-box { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
-        .num-ball { background: #e74c3c; color: white; width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; display: inline-block; margin: 3px; font-size: 14px; }
-        table { margin: 15px auto; border-collapse: collapse; background: white; color: black; border-radius: 8px; overflow: hidden; }
-        td { width: 40px; height: 40px; border: 1px solid #ccc; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .num-ball { background: #e74c3c; color: white; width: 35px; height: 35px; line-height: 35px; border-radius: 50%; font-weight: bold; display: inline-block; margin: 3px; font-size: 14px; }
+        .ticket-container { margin-bottom: 30px; border: 3px solid #f1c40f; display: inline-block; padding: 10px; border-radius: 10px; background: #fff; }
+        table { border-collapse: collapse; background: white; color: black; margin: 0 auto; }
+        td { width: 45px; height: 45px; border: 1px solid #ccc; font-size: 20px; font-weight: bold; cursor: pointer; text-align: center; }
         .marked { background: #3498db !important; color: white !important; }
-        .empty { background: #f0f0f0; cursor: default; }
-        h3 { color: #f1c40f; }
+        .empty { background: #f0f0f0; }
+        h2 { color: #f1c40f; margin-top: 25px; }
     </style>
 </head>
 <body>
     <h1>Your Tickets</h1>
-
+    
     <div class="history-box">
         <h3>Numbers Called So Far:</h3>
         <div id="numbers-sequence">
@@ -24,23 +25,28 @@
                 <span class="num-ball">{{ num }}</span>
             {% endfor %}
         </div>
-        <p style="font-size: 0.7em; color: #888;">(Refresh page for latest numbers)</p>
+        <p style="font-size: 0.8rem; color: #888;">(Refresh page for latest numbers)</p>
     </div>
 
     {% for ticket in tickets %}
-    <div style="margin-bottom:40px;">
-        <h3 style="color: #fff;">Ticket #{{ loop.index }}</h3>
-        <table>
-            {% for row in ticket %}
-            <tr>
-                {% for num in row %}
-                    {% if num %}<td onclick="this.classList.toggle('marked')">{{ num }}</td>
-                    {% else %}<td class="empty"></td>{% endif %}
+        <h2>Ticket #{{ loop.index }}</h2>
+        <div class="ticket-container">
+            <table>
+                {% for row in ticket %}
+                <tr>
+                    {% for col in row %}
+                        {% if col == 0 %}
+                            <td class="empty"></td>
+                        {% else %}
+                            <td onclick="this.classList.toggle('marked')" class="{% if col in called_numbers %}called{% endif %}">
+                                {{ col }}
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+            </table>
+        </div>
     {% endfor %}
 </body>
 </html>
